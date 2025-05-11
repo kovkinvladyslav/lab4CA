@@ -10,7 +10,7 @@ int main(int argc, char *argv[]){
     }
     std::string filname = argv[1];
     File_Reader reader(filname);
-    Interpreter interpreter(reader);
+    Interpreter interpreter(reader, "../../data/pages.csv");
     auto result = interpreter.interpretAll();
 
     for(auto resultNode : result){

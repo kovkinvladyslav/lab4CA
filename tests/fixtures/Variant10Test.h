@@ -9,10 +9,11 @@
 
 class Variant10Test : public ::testing::Test {
 protected:
+    std::string pageFileName = "../../data/pages.csv";
     void TestInstruction(const std::string& hexCode, const std::string& expectedMnemonic) {
         String_Reader reader(hexCode);
 
-        Interpreter interpreter(reader);
+        Interpreter interpreter(reader, pageFileName);
         auto result = interpreter.interpretAll();
 
         ASSERT_EQ(result.size(), 1);
@@ -23,7 +24,7 @@ protected:
     void TestMultipleInstructions(const std::string& input, const std::vector<Output_Instrunction>& expected) {
         String_Reader reader(input);
 
-        Interpreter interpreter(reader);
+        Interpreter interpreter(reader, pageFileName);
         auto result = interpreter.interpretAll();
 
         EXPECT_EQ(result, expected);
@@ -33,7 +34,7 @@ protected:
         String_Reader reader(input);
 
         EXPECT_THROW({
-            Interpreter interpreter(reader);
+            Interpreter interpreter(reader, pageFileName);
             interpreter.interpretAll();
         }, std::runtime_error);
     }

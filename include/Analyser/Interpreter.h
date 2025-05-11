@@ -24,8 +24,7 @@ private:
     std::vector<Output_Instrunction> result;
     Context context;
 public:
-    Interpreter(Reader &Reader);
+    Interpreter(Reader &Reader, std::string pageFile);
     std::vector<Output_Instrunction> interpretAll();
 };
-
 #endif

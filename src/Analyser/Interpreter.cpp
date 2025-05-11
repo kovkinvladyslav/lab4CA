@@ -4,8 +4,8 @@
 #include <Analyser/Interpreter.h>
 #include <stdexcept>
 
-Interpreter::Interpreter(Reader &reader)
-    : context(reader.get_bytes()) {}
+Interpreter::Interpreter(Reader &reader, std::string pageFile)
+    : context(reader.get_bytes(), pageFile) {}
 
 std::string formatAsBytes(uint32_t value) {
     char bytesFormat[20];
@@ -16,6 +16,7 @@ std::string formatAsBytes(uint32_t value) {
             value & 0xFF);
     return std::string(bytesFormat);
 }
+
 
 std::string formatAddressAsHex(uint32_t value) {
     char hexFormat[20];
@@ -43,6 +44,20 @@ void createOutput(std::vector<Output_Instrunction>& result, const std::string& r
     result.push_back({rawBytes, mnemonic});
 }
 
+std::string formatAsBytes(Memory::Virtual_address address){
+    uint8_t solid_address = 0;
+    solid_address = (solid_address >> address.offset.bitRate) | address.page_id.value;
+    solid_address |= address.offset.value;
+    return formatAddressAsHex(solid_address);
+}
+
+std::string formatAddressAsHex(Memory::Physical_address address){
+    uint32_t solid_address = 0;
+    solid_address = (solid_address >> address.offset.bitRate) | address.frame.value;
+    solid_address = solid_address | address.offset.value;
+    return formatAddressAsHex(solid_address);
+}
+
 std::vector<Output_Instrunction> Interpreter::interpretAll() {
     std::vector<Output_Instrunction> result;
 
@@ -64,12 +79,23 @@ std::vector<Output_Instrunction> Interpreter::interpretAll() {
             uint8_t arg = context.readByte();
             if ((arg >> 4) != 0x0) break;
             uint8_t reg = arg & 0x0F;
-            uint32_t address = context.readAddress();
-            createOutput(
-                result,
-                "1B 0" + hexValue(reg) + " " + formatAsBytes(address),
-                "MOV " + getRegisterName(reg) + ", " + formatAddressAsHex(address));
-            break;
+            auto address = context.readAddress();
+            std::string out_raw = "1B 0" + hexValue(reg) + " " + formatAsBytes(address.input);
+            std::string out_mnem;
+            if(address.isValid){
+                out_mnem = "MOV " + getRegisterName(reg) + ", " + formatAddressAsHex(address.result);
+            } else {
+                out_mnem = address.message;
+            }
+            if(address.isValid){
+                createOutput(
+                    result,
+                    out_raw, 
+                    out_mnem 
+                );
+                break;
+            }
+            
         }
         case 0x03: {
             uint8_t arg = context.readByte();
@@ -88,11 +114,12 @@ std::vector<Output_Instrunction> Interpreter::interpretAll() {
             uint8_t dstReg = context.readByte();
             uint8_t srcReg = dstReg & 0x0F;
             dstReg >>= 4;
-            uint32_t address = context.readAddress();
+            auto address = context.readAddress();
             createOutput(
                 result,
-                "04 " + hexValue(dstReg) + hexValue(srcReg) + " " + formatAsBytes(address),
-                "ADD " + getRegisterName(dstReg) + ", " + getRegisterName(srcReg) + ", " + formatAddressAsHex(address));
+                "04 " + hexValue(dstReg) + hexValue(srcReg) + " " + formatAsBytes(address.input),
+                address.isValid ? "ADD " + getRegisterName(dstReg) + ", " + getRegisterName(srcReg) + ", " + formatAddressAsHex(address.result)
+                                : address.message);
             break;
         }
         case 0x21: {
@@ -112,11 +139,12 @@ std::vector<Output_Instrunction> Interpreter::interpretAll() {
             uint8_t dstReg = context.readByte();
             uint8_t srcReg = dstReg & 0x0F;
             dstReg >>= 4;
-            uint32_t address = context.readAddress();
+            auto address = context.readAddress();
             createOutput(
                 result,
-                "23 " + hexValue(dstReg) + hexValue(srcReg) + " " + formatAsBytes(address),
-                "MUL " + getRegisterName(dstReg) + ", " + getRegisterName(srcReg) + ", " + formatAddressAsHex(address)
+                "23 " + hexValue(dstReg) + hexValue(srcReg) + " " + formatAsBytes(address.input),
+                address.isValid ? "MUL " + getRegisterName(dstReg) + ", " + getRegisterName(srcReg) + ", " + formatAddressAsHex(address.result)
+                                : address.message
             );
             break;
         }
@@ -136,11 +164,11 @@ std::vector<Output_Instrunction> Interpreter::interpretAll() {
             break;
         }
         case 0x91: {
-            uint32_t address = context.readAddress();
+            auto address = context.readAddress();
             createOutput(
                 result,
-                "91 " + formatAsBytes(address),
-                "JMP " + formatAddressAsHex(address)
+                "91 " + formatAsBytes(address.input),
+                address.isValid ? "JMP " + formatAddressAsHex(address.result) : address.message
             );
             break;
         }

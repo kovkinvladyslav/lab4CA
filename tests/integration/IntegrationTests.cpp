@@ -57,7 +57,7 @@ TEST_F(IntegrationTestFixture, IncompleteHexPairThrows) {
 TEST_F(IntegrationTestFixture, FileReader_NonExistentFileThrows) {
     EXPECT_THROW({
         File_Reader reader("this_file_should_not_exist.txt");
-        Interpreter interpreter(reader);
+        Interpreter interpreter(reader, csvFileName);
     }, std::runtime_error);
 }
 
