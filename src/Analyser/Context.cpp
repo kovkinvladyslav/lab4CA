@@ -12,7 +12,7 @@ Memory::converted_addr Context::readAddress(){
     for (int i = 0; i < 4; ++i){
         val = (val << 8) | readByte();
     }
-    return pages.validate_address(val);
+    return pages.convert_address(val);
 }
 
 bool Context::end() const {
