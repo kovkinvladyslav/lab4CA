@@ -41,7 +41,7 @@ Page_Table::Page_Table(string filename, uint32_t page_size_KB, uint32_t op_size_
             return;
         }
         record.page_id = static_cast<uint32_t>(stoul(row[0]));
-        record.is_present = row[1] == "1" ? 1 : 0;
+        record.is_loaded = row[1] == "1" ? 1 : 0;
         record.frame = static_cast<uint32_t>(stoul(row[2]));
         table.push_back(record);
     }
@@ -51,7 +51,7 @@ Page_Table::Page_Table(string filename, uint32_t page_size_KB, uint32_t op_size_
 
 }
 
-converted_addr Page_Table::validate_address(uint32_t address){
+converted_addr Page_Table::convert_address(uint32_t address){
     Virtual_address input_address = decode_virtual_address(address);
 
     auto record = find_if(table.begin(), table.end(), [&](page_table_record row){
@@ -60,15 +60,15 @@ converted_addr Page_Table::validate_address(uint32_t address){
     
     if(record == table.end()){
         return {false, "failed to convert: page " + to_string(input_address.page_id.value)
-                        + " does not exist"};
+                        + " does not exist", input_address};
     }
 
-    if(!record->is_present){
-        return {false, "failed to convert: page" + to_string(input_address.page_id.value) 
-            + " is not present in memory"};
+    if(!record->is_loaded){
+        return {false, "failed to convert: page " + to_string(input_address.page_id.value) 
+            + " is not present in memory", input_address};
     }
     Physical_address calculated_address = calculate_physical_address(input_address, record->frame);
-    return {true, "success", calculated_address, input_address};
+    return {true, "success", input_address, calculated_address};
 }
 
 Virtual_address Page_Table::decode_virtual_address(uint32_t address){

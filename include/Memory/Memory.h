@@ -11,7 +11,7 @@ namespace Memory{
 
     struct page_table_record{
         uint32_t page_id;
-        bool is_present;
+        bool is_loaded;
         uint32_t frame;
     };
 
@@ -33,14 +33,14 @@ namespace Memory{
     struct converted_addr{
         bool isValid;
         string message;
-        Physical_address result;
         Virtual_address input;
+        Physical_address result;
     };
 
 
     class Page_Table{
     public:
-        converted_addr validate_address(uint32_t address);
+        converted_addr convert_address(uint32_t address);
         Page_Table(string filename, uint32_t page_size_KB = 8, uint32_t op_size_KB = 16);
     private:
         vector<page_table_record> table = {};
