@@ -16,6 +16,8 @@ protected:
         Interpreter interpreter(reader, pageFileName);
         auto result = interpreter.interpretAll();
 
+        
+
         ASSERT_EQ(result.size(), 1);
         EXPECT_EQ(result[0].mnemonics, expectedMnemonic);
         EXPECT_EQ(result[0].byteCode, hexCode);

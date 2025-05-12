@@ -5,7 +5,7 @@ TEST_F(Variant10Test, MovRegToReg) {
 }
 
 TEST_F(Variant10Test, MovMemToReg) {
-    TestInstruction("1B 05 00 C0 00 A1", "MOV R5, [0x00C000A1]");
+    TestInstruction("1B 05 00 C0 00 A1", "MOV R5, [0x000020A1]");
 }
 
 
@@ -14,7 +14,7 @@ TEST_F(Variant10Test, AddRegRegReg) {
 }
 
 TEST_F(Variant10Test, AddRegRegMem) {
-    TestInstruction("04 12 00 C0 00 A1", "ADD R1, R2, [0x00C000A1]");
+    TestInstruction("04 12 00 C0 00 A1", "ADD R1, R2, [0x000020A1]");
 }
 
 
@@ -24,7 +24,7 @@ TEST_F(Variant10Test, MulRegRegReg) {
 
 
 TEST_F(Variant10Test, MulRegRegMem) {
-    TestInstruction("23 12 00 C0 00 A1", "MUL R1, R2, [0x00C000A1]");
+    TestInstruction("23 12 00 C0 00 A1", "MUL R1, R2, [0x000020A1]");
 }
 
 
@@ -37,7 +37,7 @@ TEST_F(Variant10Test, JmpWithNegativeShift) {
 }
 
 TEST_F(Variant10Test, JmpAddr) {
-    TestInstruction("91 FF FF FF 00", "JMP [0xFFFFFF00]");
+    TestInstruction("91 FF FF FF 00", "JMP [0x00001F00]");
 }
 
 TEST_F(Variant10Test, MovLit8ToReg_Positive) {
@@ -49,3 +49,10 @@ TEST_F(Variant10Test, MovLit8ToReg_Negative) {
 }
 
 
+TEST_F(Variant10Test, AccessMissingPage) {
+    TestInstruction("1B 05 00 00 00 A1", "failed to convert: page 0 does not exist");
+}
+
+TEST_F(Variant10Test, AccessNotLoadedPage) {
+    TestInstruction("1B 05 00 00 20 A1", "failed to convert: page 1 is not present in memory");
+}
