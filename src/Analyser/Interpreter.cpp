@@ -45,15 +45,15 @@ void createOutput(std::vector<Output_Instrunction>& result, const std::string& r
 }
 
 std::string formatAsBytes(Memory::Virtual_address address){
-    uint8_t solid_address = 0;
-    solid_address = (solid_address >> address.offset.bitRate) | address.page_id.value;
+    uint32_t solid_address = 0;
+    solid_address = (solid_address | address.page_id.value) << address.offset.bitRate;
     solid_address |= address.offset.value;
-    return formatAddressAsHex(solid_address);
+    return formatAsBytes(solid_address);
 }
 
 std::string formatAddressAsHex(Memory::Physical_address address){
     uint32_t solid_address = 0;
-    solid_address = (solid_address >> address.offset.bitRate) | address.frame.value;
+    solid_address = (solid_address | address.frame.value) << address.offset.bitRate;
     solid_address = solid_address | address.offset.value;
     return formatAddressAsHex(solid_address);
 }
@@ -87,14 +87,13 @@ std::vector<Output_Instrunction> Interpreter::interpretAll() {
             } else {
                 out_mnem = address.message;
             }
-            if(address.isValid){
-                createOutput(
-                    result,
-                    out_raw, 
-                    out_mnem 
-                );
-                break;
-            }
+
+            createOutput(
+                result,
+                out_raw, 
+                out_mnem 
+            );
+            break;
             
         }
         case 0x03: {
